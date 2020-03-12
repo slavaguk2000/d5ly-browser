@@ -2,52 +2,69 @@ function getRandomInt(max) {
 	return Math.floor(Math.random() * Math.floor(max));
 }
   
-function compare_compress_speed()
+function compare_compress_speed(count, dispersion)
 {
-	count = 1000000
+	if (dispersion>255) dispersion = 255
 	var sourceArray = new Uint8Array(count);
-	for (var i = 0; i < sourceArray.length; i++)
-		sourceArray[i] = getRandomInt(100) + 50;
-
 	var size = sourceArray.length
 	var sourcePointer = Module._malloc(size);
-	uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
-	uncompressedArray.set(sourceArray);
-	for (var i = 1; i < 10; i++){
-		console.time('zlib_time');
-		var compressedPointer = Module.zlib_compress(sourcePointer, size, i);
-		console.timeEnd('zlib_time');
-		var compressedSizeArray = new Uint32Array(wasmMemory.buffer, compressedPointer, 1);
-		console.log("compress size: " + compressedSizeArray[0] + ", level: " + i)
+	if (sourcePointer)
+	{
+		var buffer = Module._malloc(size);
+		if (buffer)
+		{
+			for (var i = 0; i < sourceArray.length; i++)
+				sourceArray[i] = getRandomInt(dispersion) + (255 - dispersion)/2;
+			uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
+			uncompressedArray.set(sourceArray);
+			for (var i = 1; i < 10; i++){
+				console.time('zlib_time');
+				var compressedSize = Module.zlib_compress(sourcePointer, buffer, size, i);
+				console.timeEnd('zlib_time');
+				console.log("compress size: " + compressedSize + ", level: " + i)
+			}
+			for (var i = 1; i < 10; i++){
+				if (i == 7) i = 9;
+				console.time('libdeflate_time');
+				var compressedSize = Module.libdeflate_compress(sourcePointer, buffer, size, i);
+				console.timeEnd('libdeflate_time');
+				console.log("compress size: " + compressedSize + ", level: " + i)
+			}	
+			Module._free(buffer)
+		}
+		Module._free(sourcePointer)
 	}
-	for (var i = 1; i < 10; i++){
-		if (i == 7) i = 9;
-		console.time('libdeflate_time');
-		var compressedPointer = Module.libdeflate_compress(sourcePointer, size, i);
-		console.timeEnd('libdeflate_time');
-		var compressedSizeArray = new Uint32Array(wasmMemory.buffer, compressedPointer, 1);
-		console.log("compress size: " + compressedSizeArray[0] + ", level: " + i)
-	}	
 }
 
 function compress(sourceArray, level){
 	var size = sourceArray.length
 	var sourcePointer = Module._malloc(size);
-	uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
-	uncompressedArray.set(sourceArray);
-	console.time('zip_time');
-	var compressedPointer = Module.compress(sourcePointer, size, level);
-	console.timeEnd('zip_time');
-	var compressedSizeArray = new Uint32Array(wasmMemory.buffer, compressedPointer, 1);
-	var compressedSize = compressedSizeArray[0];
-	wasmCompressedArray =  new Uint8Array(wasmMemory.buffer, compressedPointer+4, compressedSize);
-	const compressedArray = [...wasmCompressedArray];
-	Module._free(sourcePointer);
-	Module._free(compressedPointer);
-	returnedArray = new Uint8Array(compressedArray)
-	return {
+	if (sourcePointer){
+		var buffer = Module._malloc(size);
+		if(buffer)
+		{
+			uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
+			uncompressedArray.set(sourceArray);
+			console.time('zip_time');
+			var compressedSize = Module.compress(sourcePointer, buffer, size, level);
+			console.timeEnd('zip_time');
+			wasmCompressedArray =  new Uint8Array(wasmMemory.buffer, buffer, compressedSize);
+			const compressedArray = [...wasmCompressedArray];
+			Module._free(buffer);
+		}
+		Module._free(sourcePointer);
+	}
+	if (compressedSize) 
+	{
+		returnedArray = new Uint8Array(compressedArray)
+		return {
+			size,
+			returnedArray
+		}
+	}
+	else return {
 		size,
-		returnedArray
+		sourceArray
 	}
 }
 

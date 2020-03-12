@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "zlib/archiver.h"
 #include "libdeflate/archiver.h"
+#include "miniz/archiver.h"
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <math.h>
@@ -24,6 +25,9 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	function("libdeflate_decompress", &libdeflate::my_decompress, allow_raw_pointers());
 	function("zlib_compress", &zlib::my_compress, allow_raw_pointers());
 	function("zlib_decompress", &zlib::my_decompress, allow_raw_pointers());
+	function("miniz_compress", &miniz::my_compress, allow_raw_pointers());
+	function("miniz_decompress", &miniz::my_decompress, allow_raw_pointers());
+	
 	//function("check_library", &check_library, allow_raw_pointers());
 	//function("gzipCompress", &gzipCompress, allow_raw_pointers());
  }

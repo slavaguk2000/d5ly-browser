@@ -1,19 +1,9 @@
 #include "archiver.h"
-namespace zlib{
+namespace miniz{
 	int my_compress(int pointer, int buffer, int source_size, int level){
-		std::cout << "zlib" << std::endl;
-		int error_msg = 0;
-		uLongf compress_buff_size = source_size;
-		error_msg = compress2((Bytef*)buffer, &compress_buff_size, (const Bytef*)pointer, source_size, level);
-		switch (error_msg)
-		{
-		case Z_MEM_ERROR:
-			return 0;
-		case Z_BUF_ERROR:
-			return 0;
-		default:
-			break;
-		}
+		std::cout << "miniz" << std::endl;
+		int compress_buff_size = 0;
+		
 		return compress_buff_size;
 	}
 
