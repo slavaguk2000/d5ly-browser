@@ -1,4 +1,6 @@
 #include "archiver.h"
+#include <iostream>
+#include "gzguts.h"
 namespace zlib {
 
 	void initAllocators(gz_statep state) {

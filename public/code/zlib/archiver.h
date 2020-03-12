@@ -1,6 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-#include "gzguts.h"
 #define MEMORY_ERROR -1
 namespace zlib{
 	int my_compress(int pointer, int buffer, int source_size, int level);

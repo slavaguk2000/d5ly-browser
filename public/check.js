@@ -30,6 +30,12 @@ function compare_compress_speed(count, dispersion)
 				console.timeEnd('libdeflate_time');
 				console.log("compress size: " + compressedSize + ", level: " + i)
 			}	
+			for (var i = 1; i < 10; i++){
+				console.time('miniz_time');
+				var compressedSize = Module.miniz_compress(sourcePointer, buffer, size, i);
+				console.timeEnd('miniz_time');
+				console.log("compress size: " + compressedSize + ", level: " + i)
+			}
 			Module._free(buffer)
 		}
 		Module._free(sourcePointer)

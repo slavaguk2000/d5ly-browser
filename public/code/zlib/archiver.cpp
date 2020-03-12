@@ -1,4 +1,6 @@
 #include "archiver.h"
+#include <iostream>
+#include "gzguts.h"
 namespace zlib{
 	int my_compress(int pointer, int buffer, int source_size, int level){
 		std::cout << "zlib" << std::endl;
@@ -21,6 +23,6 @@ namespace zlib{
 		std::cout << "zlib" << std::endl;
 		uLong uLongUncompressedSize = uncompressedSize;
 		int error_msg = uncompress((Bytef*)uncompressedBuffer, &uLongUncompressedSize, (const Bytef*)compressedBuffer, compressedSize);
-		return uncompressedSize;
+		return uLongUncompressedSize;
 	}
 }
