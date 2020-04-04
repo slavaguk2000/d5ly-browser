@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include "zlib/archiver.h"
-#include "libdeflate/archiver.h"
+#include "libdeflate2/archiver.h"
 #include "miniz/archiver.h"
 #include <emscripten.h>
 #include <emscripten/bind.h>
