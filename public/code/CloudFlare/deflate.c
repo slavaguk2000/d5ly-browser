@@ -149,9 +149,16 @@ static uint32_t hash_func(deflate_state *s, void* str) {
     return _mm_crc32_u32(0, *(uint32_t*)str) & s->hash_mask;
 }
 
+#elif defined __EMSCRIPTEN__
+
+#include <wasm_simd128.h>
+static uint32_t hash_func(deflate_state *s, void* str) {
+    return _mm_crc32_u32(0, *(uint32_t*)str) & s->hash_mask;
+}
+
 #else
 
-#error "Only 64-bit Intel and ARM architectures are supported"
+#error "Only 64-bit Intel, wasm and ARM architectures are supported"
 
 #endif
 

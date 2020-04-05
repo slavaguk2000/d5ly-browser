@@ -36,6 +36,13 @@ function compare_compress_speed(count, dispersion)
 				console.timeEnd('miniz_time');
 				console.log("compress size: " + compressedSize + ", level: " + i)
 			}
+			for (var i = 1; i < 10; i++){
+				console.time('cloudflare_time');
+				var compressedSize = Module.cloudflare_compress(sourcePointer, buffer, size, i);
+				console.timeEnd('cloudflare_time');
+				console.log("compress size: " + compressedSize + ", level: " + i)
+			}
+			
 			Module._free(buffer)
 		}
 		Module._free(sourcePointer)
