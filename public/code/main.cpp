@@ -23,6 +23,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
 	function("print_Hello", &print_Hello, allow_raw_pointers());
 	function("libdeflate_compress", &libdeflate::my_compress, allow_raw_pointers());
 	function("libdeflate_decompress", &libdeflate::my_decompress, allow_raw_pointers());
+	function("libdeflate_fast_compress", &libdeflate::fast_compress, allow_raw_pointers());
 	function("zlib_compress", &zlib::my_compress, allow_raw_pointers());
 	function("zlib_decompress", &zlib::my_decompress, allow_raw_pointers());
 	function("miniz_compress", &miniz::my_compress, allow_raw_pointers());

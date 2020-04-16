@@ -55,7 +55,7 @@ function libdef_comp(sourceArray)
 	if (sourcePointer) {
 		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
 		uncompressedArray.set(sourceArray);
-		var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+size, size, 1);
+		var compressedSize = Module.libdeflate_compress(sourcePointer,sourcePointer+size, size, 1);
 		compressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer+size, compressedSize);
 		returnedArray = [...compressedArray];
 		Module._free(sourcePointer)
@@ -135,8 +135,11 @@ function buttle_with_wasm_flate(){
 		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
 		uncompressedArray.set(sourceArray);
 		console.time('libdeflate-core')
-		var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+size, size, 1);
+		var compressedSize = Module.libdeflate_compress(sourcePointer,sourcePointer+size, size, 1);
 		console.timeEnd('libdeflate-core')
+		console.time('libdeflate-fast-core')
+		var compressedSize = Module.libdeflate_fast_compress(sourcePointer, size);
+		console.timeEnd('libdeflate-fast-core')
 		compressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer+size, compressedSize);
 		returnedArray = [...compressedArray];
 		Module._free(sourcePointer)

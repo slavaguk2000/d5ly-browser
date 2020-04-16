@@ -12,6 +12,11 @@ namespace libdeflate{
         size_t size = libdeflate_deflate_compress_bound(compressor,source_size);
         return libdeflate_deflate_compress(compressor, (const void*)pointer, source_size, (void*)buffer, size);
     }
+    int fast_compress(int pointer, int source_size) {
+        libdeflate_compressor* compressor = libdeflate_alloc_compressor(1);
+        return libdeflate_deflate_compress(compressor, (const void*)pointer, source_size, (void*)(pointer+source_size), source_size);
+    }
+    
     int my_decompress(int compressedBuffer, int compressedSize, int uncompressedBuffer, int uncompressedSize)
     {
         // cout << "libdeflate" << endl;
