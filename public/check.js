@@ -36,10 +36,31 @@ function compare_compress_speed(count, dispersion)
 				console.timeEnd('miniz_time');
 				console.log("compress size: " + compressedSize + ", level: " + i)
 			}
+			console.time('wasm-flate_time')
+			var compress_Arrrrr = flate.deflate_encode_raw(uncompressedArray);
+			console.timeEnd('wasm-flate_time')
+			console.log("compress size: " + compress_Arrrrr.length + ", level: unknown")
+
 			Module._free(buffer)
 		}
 		Module._free(sourcePointer)
 	}
+}
+
+function libdef_comp(sourceArray)
+{
+    var size = sourceArray.length
+	var returnedArray = new Uint8Array();
+	var sourcePointer = Module._malloc(size*2);	
+	if (sourcePointer) {
+		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
+		uncompressedArray.set(sourceArray);
+		var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+size, size, 1);
+		compressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer+size, compressedSize);
+		returnedArray = [...compressedArray];
+		Module._free(sourcePointer)
+	}
+	return returnedArray;
 }
 
 function compress(sourceArray, level){
@@ -92,6 +113,36 @@ function decompress(compressedArray, sourceSize){
 	returnedArray = new Uint8Array(decompressedArray);
 	return returnedArray;
 }
+
+function buttle_with_wasm_flate(){
+	var sourceArray = new Uint8Array(100000);
+	var size = sourceArray.length
+	for (var i = 0; i < sourceArray.length; i++)
+		sourceArray[i] = getRandomInt(100) + (255 - 100)/2;
+
+	console.time('wasm-flate')
+	flate.deflate_encode_raw(sourceArray)
+	console.timeEnd('wasm-flate')
+
+	console.time('libdeflate')
+	libdef_comp(sourceArray)
+	console.timeEnd('libdeflate')
+
+	var size = sourceArray.length
+	var returnedArray = new Uint8Array();
+	var sourcePointer = Module._malloc(size*2);	
+	if (sourcePointer) {
+		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
+		uncompressedArray.set(sourceArray);
+		console.time('libdeflate-core')
+		var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+size, size, 1);
+		console.timeEnd('libdeflate-core')
+		compressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer+size, compressedSize);
+		returnedArray = [...compressedArray];
+		Module._free(sourcePointer)
+	}
+}
+
 
 var count = 1000000
 level = 1
