@@ -105,7 +105,7 @@
  *
  * ----------------------------------------------------------------------------
  */
-
+#include <stdio.h>
 #include "matchfinder_common.h"
 
 #define HC_MATCHFINDER_HASH3_ORDER	15
@@ -359,6 +359,7 @@ out:
  *
  * Returns @in_next + @count.
  */
+
 static forceinline const u8 *
 hc_matchfinder_skip_positions(struct hc_matchfinder * const restrict mf,
 			      const u8 ** const restrict in_base_p,
@@ -369,12 +370,9 @@ hc_matchfinder_skip_positions(struct hc_matchfinder * const restrict mf,
 {
 	u32 cur_pos;
 	u32 hash3, hash4;
-	u32 next_hashseq;
 	u32 remaining = count;
-
 	if (unlikely(count + 5 > in_end - in_next))
 		return &in_next[count];
-
 	cur_pos = in_next - *in_base_p;
 	hash3 = next_hashes[0];
 	hash4 = next_hashes[1];
@@ -388,9 +386,20 @@ hc_matchfinder_skip_positions(struct hc_matchfinder * const restrict mf,
 		mf->next_tab[cur_pos] = mf->hash4_tab[hash4];
 		mf->hash4_tab[hash4] = cur_pos;
 
-		next_hashseq = get_unaligned_le32(++in_next);
-		hash3 = lz_hash(next_hashseq & 0xFFFFFF, HC_MATCHFINDER_HASH3_ORDER);
-		hash4 = lz_hash(next_hashseq, HC_MATCHFINDER_HASH4_ORDER);
+///////////////////////////////
+
+		// u32 next_hashseq;
+		// next_hashseq = get_unaligned_le32(++in_next);
+		// hash3 = lz_hash(next_hashseq & 0xFFFFFF, HC_MATCHFINDER_HASH3_ORDER);
+		// hash4 = lz_hash(next_hashseq, HC_MATCHFINDER_HASH4_ORDER);
+		
+/////////////////////////OPTIMIZE
+
+		hash3 = lz_hash(*((u32*)(++in_next)) & 0xFFFFFF, HC_MATCHFINDER_HASH3_ORDER);
+		hash4 = lz_hash(*((u32*)(in_next)), HC_MATCHFINDER_HASH4_ORDER);
+
+/////////////////////////
+
 		cur_pos++;
 	} while (--remaining);
 
