@@ -37,6 +37,8 @@
 
 #include "libdeflate.h"
 
+
+#include <stdio.h>
 /*
  * By default, the near-optimal parsing algorithm is enabled at compression
  * level 8 and above.  The near-optimal parsing algorithm produces a compression
@@ -1975,7 +1977,6 @@ deflate_compress_greedy(struct libdeflate_compressor * restrict c,
 	unsigned max_len = DEFLATE_MAX_MATCH_LEN;
 	unsigned nice_len = MIN(c->nice_match_length, max_len);
 	u32 next_hashes[2] = {0, 0};
-
 	deflate_init_output(&os, out, out_nbytes_avail);
 	hc_matchfinder_init(&c->p.g.hc_mf);
 
@@ -2060,7 +2061,6 @@ deflate_compress_lazy(struct libdeflate_compressor * restrict c,
 	unsigned max_len = DEFLATE_MAX_MATCH_LEN;
 	unsigned nice_len = MIN(c->nice_match_length, max_len);
 	u32 next_hashes[2] = {0, 0};
-
 	deflate_init_output(&os, out, out_nbytes_avail);
 	hc_matchfinder_init(&c->p.g.hc_mf);
 
@@ -2795,7 +2795,7 @@ libdeflate_deflate_compress(struct libdeflate_compressor *c,
 		deflate_write_uncompressed_block(&os, in, in_nbytes, true);
 		return deflate_flush_output(&os);
 	}
-
+	
 	return (*c->impl)(c, in, in_nbytes, out, out_nbytes_avail);
 }
 
