@@ -50,17 +50,48 @@ function compare_compress_speed(count, dispersion)
 function libdef_comp(sourceArray)
 {
     var size = sourceArray.length
-	var returnedArray = new Uint8Array();
 	var sourcePointer = Module._malloc(size*2);	
 	if (sourcePointer) {
 		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
 		uncompressedArray.set(sourceArray);
 		var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+size, size, 1);
 		compressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer+size, compressedSize);
-		returnedArray = [...compressedArray];
 		Module._free(sourcePointer)
+		return compressedArray
 	}
-	return returnedArray;
+	else {
+		returnedArray = new Uint8Array();	
+		return returnedArray;
+	}
+}
+
+let WASM_VECTOR_LEN = 0;
+let cachegetUint8Memory0 = null;
+
+function getUint8Memory0() {
+	if (cachegetUint8Memory0 === null || cachegetUint8Memory0.buffer !== wasmMemory.buffer) {
+		cachegetUint8Memory0 = new Uint8Array(wasmMemory.buffer);
+	}
+	return cachegetUint8Memory0;
+}
+
+function passArray8ToWasm0(arg, malloc) {
+	const ptr = malloc(arg.length * 2);
+	getUint8Memory0().set(arg, ptr / 1);
+	WASM_VECTOR_LEN = arg.length;
+	return ptr;
+}
+function getArrayU8FromWasm0(ptr, len) {
+	return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+function libdef_comp2(sourceArray)
+{
+	var ptr0 = passArray8ToWasm0(sourceArray, Module._malloc);
+	var len0 = WASM_VECTOR_LEN;
+	var compressedSize = Module.libdeflate_compress(ptr0, ptr0+len0, len0, 1);
+	var v1 = getArrayU8FromWasm0(ptr0+len0, compressedSize).slice();
+	Module._free(ptr0)
+	return v1;
 }
 
 function compress(sourceArray, level){
@@ -114,7 +145,7 @@ function decompress(compressedArray, sourceSize){
 	return returnedArray;
 }
 
-function buttle_with_wasm_flate(){
+function battle_with_wasm_flate(){
 	var sourceArray = new Uint8Array(100000);
 	var size = sourceArray.length
 	for (var i = 0; i < sourceArray.length; i++)
@@ -128,17 +159,23 @@ function buttle_with_wasm_flate(){
 	libdef_comp(sourceArray)
 	console.timeEnd('libdeflate')
 
+	console.time('libdeflate2')
+	libdef_comp2(sourceArray)
+	console.timeEnd('libdeflate2')
+
 	var size = sourceArray.length
 	var returnedArray = new Uint8Array();
 	var sourcePointer = Module._malloc(size*2);	
 	if (sourcePointer) {
 		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
 		uncompressedArray.set(sourceArray);
-		console.time('libdeflate-core')
+		// console.time('libdeflate-core')
 		var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+size, size, 1);
-		console.timeEnd('libdeflate-core')
+		// console.timeEnd('libdeflate-core')
 		compressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer+size, compressedSize);
-		returnedArray = [...compressedArray];
+		// console.time('copy_return')
+		returnedArray = Array.from(compressedArray)
+		// console.timeEnd('copy_return')
 		Module._free(sourcePointer)
 	}
 }

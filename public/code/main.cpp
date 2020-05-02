@@ -17,7 +17,16 @@ void print_Hello(int count, int str){
 
 using namespace libdeflate;
 
+void zero(int ptr, int len)
+{
+	uint8_t* p = (uint8_t*)ptr;
+	while(len--) {
+		p[len] = 0;
+	}
+}
+
 EMSCRIPTEN_BINDINGS(my_module) {
+	function("zero", &zero, allow_raw_pointers());
 	function("compress", &my_compress, allow_raw_pointers());
 	function("decompress", &my_decompress, allow_raw_pointers());
 	function("print_Hello", &print_Hello, allow_raw_pointers());
