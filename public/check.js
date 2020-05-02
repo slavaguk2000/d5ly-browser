@@ -76,22 +76,38 @@ function getUint8Memory0() {
 }
 
 function passArray8ToWasm0(arg, malloc) {
-	const ptr = malloc(arg.length * 2);
-	getUint8Memory0().set(arg, ptr / 1);
 	WASM_VECTOR_LEN = arg.length;
+	const ptr = malloc(WASM_VECTOR_LEN * 2);
+	getUint8Memory0().set(arg, ptr);
 	return ptr;
 }
 function getArrayU8FromWasm0(ptr, len) {
-	return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+	return getUint8Memory0().subarray(ptr, ptr + len);
 }
 function libdef_comp2(sourceArray)
 {
-	var ptr0 = passArray8ToWasm0(sourceArray, Module._malloc);
-	var len0 = WASM_VECTOR_LEN;
-	var compressedSize = Module.libdeflate_compress(ptr0, ptr0+len0, len0, 1);
-	var v1 = getArrayU8FromWasm0(ptr0+len0, compressedSize).slice();
-	Module._free(ptr0)
-	return v1;
+	var sourcePointer = passArray8ToWasm0(sourceArray, Module._malloc);
+	if(!sourcePointer) throw "Memory Error"
+	var len = WASM_VECTOR_LEN;
+	var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+len, len, 1);
+	var compressedArray = getArrayU8FromWasm0(sourcePointer+len, compressedSize).slice();
+	Module._free(sourcePointer)
+	return compressedArray;
+}
+
+function libdef_decomp(compressArray, sourceSize)
+{
+	len = compressArray.length;
+	const ptr = Module._malloc(sourceSize+len);
+	if(!ptr) throw "Memory Error"
+	getUint8Memory0().set(compressArray, ptr);
+	var decompressedSize = Module.decompress(ptr, len, ptr+len, sourceSize);
+	if (decompressedSize != sourceSize) {
+		throw ("error, new_size = " + decompressedSize);
+	}
+	var decompressedArray = getArrayU8FromWasm0(ptr+len, decompressedSize).slice();
+	Module._free(ptr)
+	return decompressedArray
 }
 
 function compress(sourceArray, level){
@@ -160,8 +176,19 @@ function battle_with_wasm_flate(){
 	console.timeEnd('libdeflate')
 
 	console.time('libdeflate2')
-	libdef_comp2(sourceArray)
+	compressedArray = libdef_comp2(sourceArray)
 	console.timeEnd('libdeflate2')
+
+	decompressedArray = libdef_decomp(compressedArray, sourceArray.length)
+	error = 0
+	for (var i = 0; i < sourceArray.length; i++)
+		if( sourceArray[i] != decompressedArray[i]) 
+		{
+			console.log("ERROR_DEOMPRESS")
+			error = 1
+			break
+		}
+	if(!error) console.log("EQUAL")
 
 	var size = sourceArray.length
 	var returnedArray = new Uint8Array();
