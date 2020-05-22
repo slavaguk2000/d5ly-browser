@@ -7,14 +7,14 @@ using std::cout;
 
 namespace libdeflate{
     int my_compress(int pointer, int buffer, int source_size, int level){
-        cout << "libdeflate" << endl;
+        //cout << "libdeflate" << endl;
         libdeflate_compressor* compressor = libdeflate_alloc_compressor(level);
         size_t size = libdeflate_deflate_compress_bound(compressor,source_size);
         return libdeflate_deflate_compress(compressor, (const void*)pointer, source_size, (void*)buffer, size);
     }
     int my_decompress(int compressedBuffer, int compressedSize, int uncompressedBuffer, int uncompressedSize)
     {
-        cout << "libdeflate" << endl;
+        // cout << "libdeflate" << endl;
         libdeflate_decompressor* decompressor = libdeflate_alloc_decompressor();
         size_t actual_out_size;
         if (libdeflate_deflate_decompress(decompressor, (const void*)compressedBuffer, compressedSize, 
@@ -23,7 +23,7 @@ namespace libdeflate{
     }
     int gzipCompress(int sourcePointer, int gzipPointer, int size)
     {
-        cout << "libdeflate" << endl;
+        // cout << "libdeflate" << endl;
         return 0;
     }
     void check_library()
