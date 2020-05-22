@@ -1,4 +1,0 @@
-emcc --bind -s ALLOW_MEMORY_GROWTH=1 -std=c++11 tests\main.cpp -o simd.html 
-
-
--msimd128
