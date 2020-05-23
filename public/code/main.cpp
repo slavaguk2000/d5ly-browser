@@ -1,22 +1,20 @@
-#include <stdio.h>
-#include <string.h>
-#include <iostream>
-#include <vector>
-#include <stdexcept>
-#include "core/archiver.h"
+#include "core\archiver.h"
 #include <emscripten.h>
-#include <emscripten/bind.h>
-#include <math.h>
+#include <emscripten\bind.h>
+
+#include <stdio.h>
 
 using namespace emscripten;
-void print_Hello(int count, int str){
-	puts("It is my code!!!");
+
+void sayHello(){
+	printf("Hello\n");
 }
 
-
 EMSCRIPTEN_BINDINGS(my_module) {
-	function("compress", &compress, allow_raw_pointers());
-	function("decompress", &decompress, allow_raw_pointers());
+	// function("compress", &compress, allow_raw_pointers());
+	function("sayHello", &sayHello);
+	// function("decompress", &decompress, allow_raw_pointers());
+	// function("gzipCompress", &gzipCompress, allow_raw_pointers());
  }
 
 int main() {

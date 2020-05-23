@@ -1,3 +1,3 @@
-int compress(int pointer, int buffer, int source_size, int level);
-int decompress(int compressedBuffer, int compressedSize, int uncompressedBuffer, int uncompressedSize);
-int gzipCompress(int sourcePointer, int gzipPointer, int size);
+int compress(int source, int source_size);
+int decompress(int compressedData, int compressedSize, int uncompressedSize);
+int gzipCompress(int source, int source_size);

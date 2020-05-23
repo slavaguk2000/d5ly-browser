@@ -4,7 +4,9 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:\\Users\\Slava\\Documents\\emsdk\\upstream\\**"
+                "C:\\Users\\Slava\\Documents\\emsdk\\upstream\\**",
+                "D:\\WORK\\emsdk\\upstream\\**",
+                "D:\\WORK\\emsdk\\upstream\\emscripten\\system\\include\\**"
             ],
             "defines": [
                 "_DEBUG",
