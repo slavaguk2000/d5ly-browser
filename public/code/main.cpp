@@ -1,6 +1,6 @@
-#include "core\archiver.h"
+#include "core/archiver.h"
 #include <emscripten.h>
-#include <emscripten\bind.h>
+#include <emscripten/bind.h>
 
 #include <stdio.h>
 
@@ -11,7 +11,7 @@ void sayHello(){
 }
 
 EMSCRIPTEN_BINDINGS(my_module) {
-	// function("compress", &compress, allow_raw_pointers());
+	function("compress", &compress, allow_raw_pointers());
 	function("sayHello", &sayHello);
 	// function("decompress", &decompress, allow_raw_pointers());
 	// function("gzipCompress", &gzipCompress, allow_raw_pointers());
