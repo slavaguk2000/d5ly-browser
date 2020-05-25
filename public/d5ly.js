@@ -29,7 +29,7 @@ function d5ly_compress(sourceArray)
 
 function d5ly_decompress(compressedArray, sourceSize)
 {
-	len = compressArray.length;
+	len = compressedArray.length;
     const compressedPointer = passArray8ToWasm0(compressedArray, Module._malloc, sourceSize+len);
 	var decompressedSize = Module.decompress(compressedPointer, len, sourceSize);
 	if (decompressedSize != sourceSize) {
