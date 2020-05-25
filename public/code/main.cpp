@@ -13,7 +13,7 @@ void sayHello(){
 EMSCRIPTEN_BINDINGS(my_module) {
 	function("compress", &compress, allow_raw_pointers());
 	function("sayHello", &sayHello);
-	// function("decompress", &decompress, allow_raw_pointers());
+	function("decompress", &decompress, allow_raw_pointers());
 	// function("gzipCompress", &gzipCompress, allow_raw_pointers());
  }
 

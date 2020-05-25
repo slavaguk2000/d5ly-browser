@@ -1,55 +1,10 @@
 function getRandomInt(max) {
 	return Math.floor(Math.random() * Math.floor(max));
 }
-  
-function compare_compress_speed(count, dispersion)
-{
-	if (dispersion>255) dispersion = 255
-	var sourceArray = new Uint8Array(count);
-	var size = sourceArray.length
-	var sourcePointer = Module._malloc(size);
-	if (sourcePointer)
-	{
-		var buffer = Module._malloc(size);
-		if (buffer)
-		{
-			for (var i = 0; i < sourceArray.length; i++)
-				sourceArray[i] = getRandomInt(dispersion) + (255 - dispersion)/2;
-			uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
-			uncompressedArray.set(sourceArray);
-			for (var i = 1; i < 10; i++){
-				console.time('zlib_time');
-				var compressedSize = Module.zlib_compress(sourcePointer, buffer, size, i);
-				console.timeEnd('zlib_time');
-				console.log("compress size: " + compressedSize + ", level: " + i)
-			}
-			for (var i = 1; i < 10; i++){
-				if (i == 7) i = 9;
-				console.time('libdeflate_time');
-				var compressedSize = Module.libdeflate_compress(sourcePointer, buffer, size, i);
-				console.timeEnd('libdeflate_time');
-				console.log("compress size: " + compressedSize + ", level: " + i)
-			}	
-			for (var i = 1; i < 10; i++){
-				console.time('miniz_time');
-				var compressedSize = Module.miniz_compress(sourcePointer, buffer, size, i);
-				console.timeEnd('miniz_time');
-				console.log("compress size: " + compressedSize + ", level: " + i)
-			}
-			console.time('wasm-flate_time')
-			var compress_Arrrrr = flate.deflate_encode_raw(uncompressedArray);
-			console.timeEnd('wasm-flate_time')
-			console.log("compress size: " + compress_Arrrrr.length + ", level: unknown")
-
-			Module._free(buffer)
-		}
-		Module._free(sourcePointer)
-	}
-}
 
 function libdef_comp(sourceArray)
 {
-    var size = sourceArray.length
+	var size = sourceArray.length
 	var sourcePointer = Module._malloc(size*2);	
 	if (sourcePointer) {
 		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
@@ -75,22 +30,22 @@ function getUint8Memory0() {
 	return cachegetUint8Memory0;
 }
 
-function passArray8ToWasm0(arg, malloc) {
+function passArray8ToWasm(arg, malloc) {
 	WASM_VECTOR_LEN = arg.length;
 	const ptr = malloc(WASM_VECTOR_LEN * 2);
 	getUint8Memory0().set(arg, ptr);
 	return ptr;
 }
-function getArrayU8FromWasm0(ptr, len) {
+function getArrayU8FromWasm(ptr, len) {
 	return getUint8Memory0().subarray(ptr, ptr + len);
 }
 function libdef_comp2(sourceArray)
 {
-	var sourcePointer = passArray8ToWasm0(sourceArray, Module._malloc);
+	var sourcePointer = passArray8ToWasm(sourceArray, Module._malloc);
 	if(!sourcePointer) throw "Memory Error"
 	var len = WASM_VECTOR_LEN;
 	var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+len, len, 1);
-	var compressedArray = getArrayU8FromWasm0(sourcePointer+len, compressedSize).slice();
+	var compressedArray = getArrayU8FromWasm(sourcePointer+len, compressedSize).slice();
 	Module._free(sourcePointer)
 	return compressedArray;
 }
@@ -105,7 +60,7 @@ function libdef_decomp(compressArray, sourceSize)
 	if (decompressedSize != sourceSize) {
 		throw ("error, new_size = " + decompressedSize);
 	}
-	var decompressedArray = getArrayU8FromWasm0(ptr+len, decompressedSize).slice();
+	var decompressedArray = getArrayU8FromWasm(ptr+len, decompressedSize).slice();
 	Module._free(ptr)
 	return decompressedArray
 }
@@ -165,66 +120,92 @@ function battle_with_wasm_flate(){
 	var sourceArray = new Uint8Array(100000);
 	var size = sourceArray.length
 	for (var i = 0; i < sourceArray.length; i++)
-		sourceArray[i] = getRandomInt(100) + (255 - 100)/2;
-
+	sourceArray[i] = getRandomInt(100) + (255 - 100)/2;
+	
 	console.time('wasm-flate')
 	flate.deflate_encode_raw(sourceArray)
 	console.timeEnd('wasm-flate')
-
-	console.time('libdeflate')
-	libdef_comp(sourceArray)
-	console.timeEnd('libdeflate')
-
-	console.time('libdeflate2')
-	compressedArray = libdef_comp2(sourceArray)
-	console.timeEnd('libdeflate2')
-
-	decompressedArray = libdef_decomp(compressedArray, sourceArray.length)
+	
+	console.time('d5ly_compress')
+	compressedArray = d5ly_compress(sourceArray)
+	console.timeEnd('d5ly_compress')
+	
+	decompressedArray = d5ly_decompress(compressedArray, sourceArray.length)
 	error = 0
 	for (var i = 0; i < sourceArray.length; i++)
-		if( sourceArray[i] != decompressedArray[i]) 
-		{
-			console.log("ERROR_DEOMPRESS")
-			error = 1
-			break
-		}
-	if(!error) console.log("EQUAL")
-
-	var size = sourceArray.length
-	var returnedArray = new Uint8Array();
-	var sourcePointer = Module._malloc(size*2);	
-	if (sourcePointer) {
-		uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
-		uncompressedArray.set(sourceArray);
-		// console.time('libdeflate-core')
-		var compressedSize = Module.libdeflate_compress(sourcePointer, sourcePointer+size, size, 1);
-		// console.timeEnd('libdeflate-core')
-		compressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer+size, compressedSize);
-		// console.time('copy_return')
-		returnedArray = Array.from(compressedArray)
-		// console.timeEnd('copy_return')
-		Module._free(sourcePointer)
+	if( sourceArray[i] != decompressedArray[i]) 
+	{
+		console.log("ERROR_DEOMPRESS")
+		error = 1
+		break
 	}
+	if(!error) console.log("EQUAL")
+	
 }
 
 
-var count = 1000000
-level = 1
-var sourcePointer = Module._malloc(count);
-var sourceArray = new Uint8Array(wasmMemory.buffer, sourcePointer, count);
-for (var i = 0; i < sourceArray.length; i++)
-	sourceArray[i] = i%10+48;
-var compressArray = compress(sourceArray, level);
-console.log(compressArray.returnedArray.length)
-var decompressArray = decompress(compressArray.returnedArray, compressArray.size);
+// var count = 1000000
+// level = 1
+// var sourcePointer = Module._malloc(count);
+// var sourceArray = new Uint8Array(wasmMemory.buffer, sourcePointer, count);
+// for (var i = 0; i < sourceArray.length; i++)
+// sourceArray[i] = i%10+48;
+// var compressArray = compress(sourceArray, level);
+// console.log(compressArray.returnedArray.length)
+// var decompressArray = decompress(compressArray.returnedArray, compressArray.size);
 
-function compress_test(level)
-{
-	var compressArray = compress(sourceArray, level);
-	console.log("compress size: " + compressArray.returnedArray.length + ", level: " + level)
-}
+// function compress_test(level)
+// {
+// 	var compressArray = compress(sourceArray, level);
+// 	console.log("compress size: " + compressArray.returnedArray.length + ", level: " + level)
+// }
 
-for (var i = 1; i < 10; i++)
-	compress_test(i)
+// for (var i = 1; i < 10; i++)
+// compress_test(i)
 
 
+
+// function compare_compress_speed(count, dispersion)
+// {
+// 	if (dispersion>255) dispersion = 255
+// 	var sourceArray = new Uint8Array(count);
+// 	var size = sourceArray.length
+// 	var sourcePointer = Module._malloc(size);
+// 	if (sourcePointer)
+// 	{
+// 		var buffer = Module._malloc(size);
+// 		if (buffer)
+// 		{
+// 			for (var i = 0; i < sourceArray.length; i++)
+// 				sourceArray[i] = getRandomInt(dispersion) + (255 - dispersion)/2;
+// 			uncompressedArray = new Uint8Array(wasmMemory.buffer, sourcePointer, size);
+// 			uncompressedArray.set(sourceArray);
+// 			for (var i = 1; i < 10; i++){
+// 				console.time('zlib_time');
+// 				var compressedSize = Module.zlib_compress(sourcePointer, buffer, size, i);
+// 				console.timeEnd('zlib_time');
+// 				console.log("compress size: " + compressedSize + ", level: " + i)
+// 			}
+// 			for (var i = 1; i < 10; i++){
+// 				if (i == 7) i = 9;
+// 				console.time('libdeflate_time');
+// 				var compressedSize = Module.libdeflate_compress(sourcePointer, buffer, size, i);
+// 				console.timeEnd('libdeflate_time');
+// 				console.log("compress size: " + compressedSize + ", level: " + i)
+// 			}	
+// 			for (var i = 1; i < 10; i++){
+// 				console.time('miniz_time');
+// 				var compressedSize = Module.miniz_compress(sourcePointer, buffer, size, i);
+// 				console.timeEnd('miniz_time');
+// 				console.log("compress size: " + compressedSize + ", level: " + i)
+// 			}
+// 			console.time('wasm-flate_time')
+// 			var compress_Arrrrr = flate.deflate_encode_raw(uncompressedArray);
+// 			console.timeEnd('wasm-flate_time')
+// 			console.log("compress size: " + compress_Arrrrr.length + ", level: unknown")
+
+// 			Module._free(buffer)
+// 		}
+// 		Module._free(sourcePointer)
+// 	}
+// }
