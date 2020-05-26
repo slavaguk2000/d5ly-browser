@@ -1,4 +1,4 @@
-#include "libdeflate.h"
+#include "lib/libdeflate.h"
 
 #define LVL 1
 
