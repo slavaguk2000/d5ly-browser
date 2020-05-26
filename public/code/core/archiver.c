@@ -1,6 +1,4 @@
 #include "libdeflate.h"
-// #include <emscripten.h>
-
 
 #define LVL 1
 
@@ -18,9 +16,9 @@ int decompress(int compressedData, int compressedSize, int uncompressedSize)
     pointer + compressedSize, uncompressedSize, &actual_out_size) != LIBDEFLATE_SUCCESS) return 0;
     return actual_out_size; 
 }
-// int gzipCompress(int source, int source_size)
-// {
-//     struct libdeflate_compressor* compressor = libdeflate_alloc_compressor(LVL);
-//     uint8_t* pointer = (uint8_t*)source;
-//     return libdeflate_gzip_compress(compressor, pointer, source_size, pointer+source_size, source_size);
-// }    
+int gzipCompress(int source, int source_size)
+{
+    struct libdeflate_compressor* compressor = libdeflate_alloc_compressor(LVL);
+    uint8_t* pointer = (uint8_t*)source;
+    return libdeflate_gzip_compress(compressor, pointer, source_size, pointer+source_size, source_size);
+}    

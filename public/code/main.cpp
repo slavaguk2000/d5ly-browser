@@ -6,18 +6,12 @@
 
 using namespace emscripten;
 
-void sayHello(){
-	printf("Hello\n");
-}
-
 EMSCRIPTEN_BINDINGS(my_module) {
 	function("compress", &compress, allow_raw_pointers());
-	function("sayHello", &sayHello);
 	function("decompress", &decompress, allow_raw_pointers());
-	// function("gzipCompress", &gzipCompress, allow_raw_pointers());
+	function("gzipCompress", &gzipCompress, allow_raw_pointers());
  }
 
 int main() {
 	return 0;
 }
-//level 1(speed) - 9(compression)
