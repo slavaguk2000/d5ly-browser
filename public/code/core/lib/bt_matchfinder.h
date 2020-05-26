@@ -113,10 +113,10 @@ bt_matchfinder_init(struct bt_matchfinder *mf)
 }
 
 static forceinline void
-bt_matchfinder_slide_window(struct bt_matchfinder *mf)
+bt_matchfinder_slide_window(struct bt_matchfinder *mf, int opt)
 {
 	matchfinder_rebase((mf_pos_t *)mf,
-			   sizeof(struct bt_matchfinder) / sizeof(mf_pos_t));
+			   sizeof(struct bt_matchfinder) / sizeof(mf_pos_t), opt);
 }
 
 static forceinline mf_pos_t *

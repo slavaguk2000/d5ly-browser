@@ -8,8 +8,9 @@ using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(my_module) {
 	function("compress", &compress, allow_raw_pointers());
+	function("compress_optimize", &compress_optimize, allow_raw_pointers());
 	function("decompress", &decompress, allow_raw_pointers());
-	function("gzipCompress", &gzipCompress, allow_raw_pointers());
+	// function("gzipCompress", &gzipCompress, allow_raw_pointers());
  }
 
 int main() {

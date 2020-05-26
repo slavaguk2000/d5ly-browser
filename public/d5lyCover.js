@@ -48,3 +48,13 @@ function d5ly_gzipCompress(sourceArray){
 	Module._free(sourcePointer)
 	return compressedArray;
 }
+
+function d5ly_compress_optimize(sourceArray)
+{
+    var len = sourceArray.length;
+	var sourcePointer = passArrayToWasm(sourceArray, Module._malloc, len * 2);
+	var compressedSize = Module.compress_optimize(sourcePointer, len);
+	var compressedArray = getArrayFromWasm(sourcePointer+len, compressedSize).slice();
+	Module._free(sourcePointer)
+	return compressedArray;
+}

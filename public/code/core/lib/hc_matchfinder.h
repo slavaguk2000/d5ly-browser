@@ -142,10 +142,10 @@ hc_matchfinder_init(struct hc_matchfinder *mf)
 }
 
 static forceinline void
-hc_matchfinder_slide_window(struct hc_matchfinder *mf)
+hc_matchfinder_slide_window(struct hc_matchfinder *mf, int opt)
 {
 	matchfinder_rebase((mf_pos_t *)mf,
-			   sizeof(struct hc_matchfinder) / sizeof(mf_pos_t));
+			   sizeof(struct hc_matchfinder) / sizeof(mf_pos_t), opt);
 }
 
 /*
@@ -188,7 +188,7 @@ hc_matchfinder_longest_match(struct hc_matchfinder * const restrict mf,
 			     const u32 nice_len,
 			     const u32 max_search_depth,
 			     u32 * const restrict next_hashes,
-			     u32 * const restrict offset_ret)
+			     u32 * const restrict offset_ret, int opt)
 {
 	u32 depth_remaining = max_search_depth;
 	const u8 *best_matchptr = in_next;
@@ -203,7 +203,7 @@ hc_matchfinder_longest_match(struct hc_matchfinder * const restrict mf,
 	mf_pos_t cutoff;
 
 	if (cur_pos == MATCHFINDER_WINDOW_SIZE) {
-		hc_matchfinder_slide_window(mf);
+		hc_matchfinder_slide_window(mf, opt);
 		*in_base_p += MATCHFINDER_WINDOW_SIZE;
 		cur_pos = 0;
 	}
@@ -365,11 +365,10 @@ hc_matchfinder_skip_positions(struct hc_matchfinder * const restrict mf,
 			      const u8 *in_next,
 			      const u8 * const in_end,
 			      const u32 count,
-			      u32 * const restrict next_hashes)
+			      u32 * const restrict next_hashes, int opt)
 {
 	u32 cur_pos;
 	u32 hash3, hash4;
-	u32 next_hashseq;
 	u32 remaining = count;
 
 	if (unlikely(count + 5 > in_end - in_next))
@@ -380,7 +379,7 @@ hc_matchfinder_skip_positions(struct hc_matchfinder * const restrict mf,
 	hash4 = next_hashes[1];
 	do {
 		if (cur_pos == MATCHFINDER_WINDOW_SIZE) {
-			hc_matchfinder_slide_window(mf);
+			hc_matchfinder_slide_window(mf, opt);
 			*in_base_p += MATCHFINDER_WINDOW_SIZE;
 			cur_pos = 0;
 		}
@@ -388,9 +387,19 @@ hc_matchfinder_skip_positions(struct hc_matchfinder * const restrict mf,
 		mf->next_tab[cur_pos] = mf->hash4_tab[hash4];
 		mf->hash4_tab[hash4] = cur_pos;
 
-		next_hashseq = get_unaligned_le32(++in_next);
-		hash3 = lz_hash(next_hashseq & 0xFFFFFF, HC_MATCHFINDER_HASH3_ORDER);
-		hash4 = lz_hash(next_hashseq, HC_MATCHFINDER_HASH4_ORDER);
+		if(opt)
+		{
+			hash3 = lz_hash(*((u32*)(++in_next)) & 0xFFFFFF, HC_MATCHFINDER_HASH3_ORDER);
+			hash4 = lz_hash(*((u32*)(in_next)), HC_MATCHFINDER_HASH4_ORDER);
+		}
+		else
+		{
+			u32 next_hashseq;
+			next_hashseq = get_unaligned_le32(++in_next);
+			hash3 = lz_hash(next_hashseq & 0xFFFFFF, HC_MATCHFINDER_HASH3_ORDER);
+			hash4 = lz_hash(next_hashseq, HC_MATCHFINDER_HASH4_ORDER);
+		}
+		
 		cur_pos++;
 	} while (--remaining);
 

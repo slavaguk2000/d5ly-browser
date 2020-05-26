@@ -84,7 +84,7 @@ libdeflate_alloc_compressor(int compression_level);
 LIBDEFLATEEXPORT size_t LIBDEFLATEAPI
 libdeflate_deflate_compress(struct libdeflate_compressor *compressor,
 			    const void *in, size_t in_nbytes,
-			    void *out, size_t out_nbytes_avail);
+			    void *out, size_t out_nbytes_avail, int opt);
 
 /*
  * libdeflate_deflate_compress_bound() returns a worst-case upper bound on the

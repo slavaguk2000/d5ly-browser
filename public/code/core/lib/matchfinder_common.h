@@ -72,7 +72,7 @@ matchfinder_init(mf_pos_t *data, size_t num_entries)
  * the links need to be rebased in the same way.
  */
 static forceinline void
-matchfinder_rebase(mf_pos_t *data, size_t num_entries)
+matchfinder_rebase(mf_pos_t *data, size_t num_entries, int opt)
 {
 	size_t i;
 
@@ -84,13 +84,30 @@ matchfinder_rebase(mf_pos_t *data, size_t num_entries)
 		 * already negative, clear all bits except the sign bit; this
 		 * changes the value to -32768.  Otherwise, set the sign bit;
 		 * this is equivalent to subtracting 32768.  */
-		for (i = 0; i < num_entries; i++) {
-			u16 v = data[i];
-			u16 sign_bit = v & 0x8000;
-			v &= sign_bit - ((sign_bit >> 15) ^ 1);
-			v |= 0x8000;
-			data[i] = v;
+		
+
+		if(opt)
+		{
+			for (i = 0; i < num_entries; i++) {
+
+				//OPTIMIZE
+
+				data[i] = data[i] < 0 ? 0x8000 : data[i] | 0x8000;
+
+				///
+			}
 		}
+		else
+		{
+			for (i = 0; i < num_entries; i++) {
+				u16 v = data[i];
+				u16 sign_bit = v & 0x8000;
+				v &= sign_bit - ((sign_bit >> 15) ^ 1);
+				v |= 0x8000;
+				data[i] = v;			
+			}
+		}
+		
 		return;
 	}
 

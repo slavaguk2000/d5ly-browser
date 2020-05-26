@@ -31,18 +31,33 @@ function battle_with_wasm_flate(){
 	console.timeEnd('wasm-flate')
 	
 	console.time('d5ly_compress')
-	compressedArray = d5ly_compress(sourceArray)
+	compressedArray1 = d5ly_compress(sourceArray)
 	console.timeEnd('d5ly_compress')
+
+	console.time('d5ly_compress_optimize')
+	compressedArray2 = d5ly_compress_optimize(sourceArray)
+	console.timeEnd('d5ly_compress_optimize')	
 	
-	decompressedArray = d5ly_decompress(compressedArray, sourceArray.length)
+
 	error = 0
 	for (var i = 0; i < sourceArray.length; i++)
-	if( sourceArray[i] != decompressedArray[i]) 
-	{
-		console.log("ERROR_DEOMPRESS")
-		error = 1
-		break
-	}
-	if(!error) console.log("EQUAL")
+		if( compressedArray1[i] != compressedArray2[i]) 
+		{
+			console.log("ERROR_OPTIMIZATION")
+			error = 1
+			break
+		}
+	if(!error) console.log("OPTIMIZATION RESAULT: EQUAL")
+	
+	decompressedArray = d5ly_decompress(compressedArray2, sourceArray.length)
+	error = 0
+	for (var i = 0; i < sourceArray.length; i++)
+		if( sourceArray[i] != decompressedArray[i]) 
+		{
+			console.log("ERROR_DECOMPRESS")
+			error = 1
+			break
+		}
+	if(!error) console.log("DECOMPRESS RESAULT: EQUAL")
 	
 }

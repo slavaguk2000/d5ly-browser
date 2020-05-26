@@ -328,7 +328,7 @@ struct libdeflate_compressor {
 
 	/* Pointer to the compress() implementation chosen at allocation time */
 	size_t (*impl)(struct libdeflate_compressor *,
-		       const u8 *, size_t, u8 *, size_t);
+		       const u8 *, size_t, u8 *, size_t, int);
 
 	/* Frequency counters for the current block  */
 	struct deflate_freqs freqs;
@@ -1966,7 +1966,7 @@ should_end_block(struct block_split_stats *stats,
 static size_t
 deflate_compress_greedy(struct libdeflate_compressor * restrict c,
 			const u8 * restrict in, size_t in_nbytes,
-			u8 * restrict out, size_t out_nbytes_avail)
+			u8 * restrict out, size_t out_nbytes_avail, int opt)
 {
 	const u8 *in_next = in;
 	const u8 *in_end = in_next + in_nbytes;
@@ -2010,7 +2010,7 @@ deflate_compress_greedy(struct libdeflate_compressor * restrict c,
 							      nice_len,
 							      c->max_search_depth,
 							      next_hashes,
-							      &offset);
+							      &offset, opt);
 
 			if (length >= DEFLATE_MIN_MATCH_LEN) {
 				/* Match found.  */
@@ -2022,7 +2022,7 @@ deflate_compress_greedy(struct libdeflate_compressor * restrict c,
 									in_next + 1,
 									in_end,
 									length - 1,
-									next_hashes);
+									next_hashes, opt);
 			} else {
 				/* No match found.  */
 				deflate_choose_literal(c, *in_next, &litrunlen);
@@ -2051,7 +2051,7 @@ deflate_compress_greedy(struct libdeflate_compressor * restrict c,
 static size_t
 deflate_compress_lazy(struct libdeflate_compressor * restrict c,
 		      const u8 * restrict in, size_t in_nbytes,
-		      u8 * restrict out, size_t out_nbytes_avail)
+		      u8 * restrict out, size_t out_nbytes_avail, int opt)
 {
 	const u8 *in_next = in;
 	const u8 *in_end = in_next + in_nbytes;
@@ -2096,7 +2096,7 @@ deflate_compress_lazy(struct libdeflate_compressor * restrict c,
 							       nice_len,
 							       c->max_search_depth,
 							       next_hashes,
-							       &cur_offset);
+							       &cur_offset, opt);
 			in_next += 1;
 
 			if (cur_len < DEFLATE_MIN_MATCH_LEN) {
@@ -2121,7 +2121,7 @@ deflate_compress_lazy(struct libdeflate_compressor * restrict c,
 									in_next,
 									in_end,
 									cur_len - 1,
-									next_hashes);
+									next_hashes, opt);
 				continue;
 			}
 
@@ -2153,7 +2153,7 @@ deflate_compress_lazy(struct libdeflate_compressor * restrict c,
 								nice_len,
 								c->max_search_depth / 2,
 								next_hashes,
-								&next_offset);
+								&next_offset, opt);
 			in_next += 1;
 
 			if (next_len > cur_len) {
@@ -2175,7 +2175,7 @@ deflate_compress_lazy(struct libdeflate_compressor * restrict c,
 								in_next,
 								in_end,
 								cur_len - 2,
-								next_hashes);
+								next_hashes, opt);
 
 			/* Check if it's time to output another block.  */
 		} while (in_next < in_max_block_end &&
@@ -2481,7 +2481,7 @@ deflate_optimize_block(struct libdeflate_compressor *c, u32 block_length,
 static size_t
 deflate_compress_near_optimal(struct libdeflate_compressor * restrict c,
 			      const u8 * restrict in, size_t in_nbytes,
-			      u8 * restrict out, size_t out_nbytes_avail)
+			      u8 * restrict out, size_t out_nbytes_avail, int opt)
 {
 	const u8 *in_next = in;
 	const u8 *in_end = in_next + in_nbytes;
@@ -2520,7 +2520,7 @@ deflate_compress_near_optimal(struct libdeflate_compressor * restrict c,
 
 			/* Slide the window forward if needed.  */
 			if (in_next == in_next_slide) {
-				bt_matchfinder_slide_window(&c->p.n.bt_mf);
+				bt_matchfinder_slide_window(&c->p.n.bt_mf, opt);
 				in_cur_base = in_next;
 				in_next_slide = in_next + MIN(in_end - in_next,
 							      MATCHFINDER_WINDOW_SIZE);
@@ -2595,7 +2595,7 @@ deflate_compress_near_optimal(struct libdeflate_compressor * restrict c,
 				--best_len;
 				do {
 					if (in_next == in_next_slide) {
-						bt_matchfinder_slide_window(&c->p.n.bt_mf);
+						bt_matchfinder_slide_window(&c->p.n.bt_mf, opt);
 						in_cur_base = in_next;
 						in_next_slide = in_next + MIN(in_end - in_next,
 									      MATCHFINDER_WINDOW_SIZE);
@@ -2781,7 +2781,7 @@ libdeflate_alloc_compressor(int compression_level)
 LIBDEFLATEEXPORT size_t LIBDEFLATEAPI
 libdeflate_deflate_compress(struct libdeflate_compressor *c,
 			    const void *in, size_t in_nbytes,
-			    void *out, size_t out_nbytes_avail)
+			    void *out, size_t out_nbytes_avail, int opt)
 {
 	if (unlikely(out_nbytes_avail < OUTPUT_END_PADDING))
 		return 0;
@@ -2796,7 +2796,7 @@ libdeflate_deflate_compress(struct libdeflate_compressor *c,
 		return deflate_flush_output(&os);
 	}
 
-	return (*c->impl)(c, in, in_nbytes, out, out_nbytes_avail);
+	return (*c->impl)(c, in, in_nbytes, out, out_nbytes_avail, opt);
 }
 
 LIBDEFLATEEXPORT void LIBDEFLATEAPI
