@@ -2,6 +2,8 @@
 const express = require('express')
 const app = express()
 
+module.exports = require('pako')
+
 // Serve static files from /public
 app.use( express.static('public', {
     setHeaders: (res, path, stat) => {
@@ -12,4 +14,4 @@ app.use( express.static('public', {
                 }) )
 
                 // Start server
-app.listen( 2222, () => console.log('Server running on port 2222!') )
+app.listen( 2223, () => console.log('Server running on port 2223!') )
