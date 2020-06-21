@@ -199,7 +199,7 @@ next_block:
 
 		SAFETY_CHECK(len == (u16)~nlen);
 		if (unlikely(len > out_end - out_next))
-			return LIBDEFLATE_INSUFFICIENT_SPACE;
+			return LIBDEFLATE_INSUFFICIENT_SPACE; //TO DO: realloc memory; 
 		SAFETY_CHECK(len <= in_end - in_next);
 
 		memcpy(out_next, in_next, len);
@@ -273,7 +273,7 @@ have_decode_tables:
 		if (entry & HUFFDEC_LITERAL) {
 			/* Literal  */
 			if (unlikely(out_next == out_end))
-				return LIBDEFLATE_INSUFFICIENT_SPACE;
+				return LIBDEFLATE_INSUFFICIENT_SPACE; //TO DO: realloc memory;
 			*out_next++ = (u8)(entry >> HUFFDEC_RESULT_SHIFT);
 			continue;
 		}
@@ -296,7 +296,7 @@ have_decode_tables:
 		STATIC_ASSERT(HUFFDEC_END_OF_BLOCK_LENGTH == 0);
 		if (unlikely((size_t)length - 1 >= out_end - out_next)) {
 			if (unlikely(length != HUFFDEC_END_OF_BLOCK_LENGTH))
-				return LIBDEFLATE_INSUFFICIENT_SPACE;
+				return LIBDEFLATE_INSUFFICIENT_SPACE; //TO DO: realloc memory;
 			goto block_done;
 		}
 
