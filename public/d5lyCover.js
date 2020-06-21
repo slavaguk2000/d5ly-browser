@@ -21,15 +21,22 @@ function d5ly_compress(sourceArray)
     var len = sourceArray.length;
 	var sourcePointer = passArrayToWasm(sourceArray, Module._malloc, len * 2);
 	var compressedSize = Module.compress(sourcePointer, len);
-	var compressedArray = getArrayFromWasm(sourcePointer+len, compressedSize).slice();
+	var compressedArray = getArrayFromWasm(sourcePointer+len, compressedSize + 4).slice();
 	Module._free(sourcePointer)
 	return compressedArray;
 }
 
-function d5ly_decompress(compressedArray, sourceSize)
+function getSourceSize(compressedArray)
 {
-	len = compressedArray.length;
-    const compressedPointer = passArrayToWasm(compressedArray, Module._malloc, sourceSize+len);
+	dataView = new DataView(compressedArray.buffer)
+	return dataView.getInt32(compressedArray.length - 4, true)
+}
+
+function d5ly_decompress(compressedArray)
+{
+	len = compressedArray.length - 4;
+	sourceSize = getSourceSize(compressedArray)
+    const compressedPointer = passArrayToWasm(compressedArray, Module._malloc, sourceSize+len+4);
 	var decompressedSize = Module.decompress(compressedPointer, len, sourceSize);
 	if (decompressedSize != sourceSize) {
 		throw ("error, new_size = " + decompressedSize);
