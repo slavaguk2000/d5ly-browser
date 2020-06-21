@@ -32,7 +32,7 @@ function check_equality(sourceArray, decompressedArray){
 	for (var i = 0; i < sourceArray.length; i++)
 	if( sourceArray[i] != decompressedArray[i]) 
 	{
-		console.log("ERROR_DEOMPRESS")
+		console.log("ERROR_DECOMPRESS: " + i)
 		error = 1
 		break
 	}
