@@ -4,8 +4,11 @@
 
 int compress(int source, int source_size){
     struct libdeflate_compressor* compressor = libdeflate_alloc_compressor(LVL);
-    uint8_t* pointer = (uint8_t*)source;
-    return libdeflate_deflate_compress(compressor, pointer, source_size, pointer+source_size, source_size);
+    uint8_t* source_pointer = (uint8_t*)source;
+    uint8_t* destenition_pointer = source_pointer + source_size;
+    uint32_t size = libdeflate_deflate_compress(compressor, source_pointer, source_size, destenition_pointer, source_size - 1);
+    *((uint32_t*)(destenition_pointer+size)) = size;
+    return size;
 }
 int decompress(int compressedData, int compressedSize, int uncompressedSize)
 {

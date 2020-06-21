@@ -2,6 +2,31 @@
     "files.associations": {
         "*.inc": "cpp",
         "bitset": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "array": "c",
+        "deque": "c",
+        "future": "c",
+        "iterator": "c",
+        "list": "c",
+        "map": "c",
+        "memory": "c",
+        "regex": "c",
+        "set": "c",
+        "streambuf": "c",
+        "unordered_map": "c",
+        "unordered_set": "c",
+        "vector": "c",
+        "xhash": "c",
+        "xmemory": "c",
+        "xstring": "c",
+        "xtree": "c",
+        "xutility": "c",
+        "__bit_reference": "c",
+        "__hash_table": "c",
+        "__split_buffer": "c",
+        "__sso_allocator": "c",
+        "__tree": "c",
+        "string": "c",
+        "string_view": "c"
     }
 }
