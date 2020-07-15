@@ -7,8 +7,8 @@ function getUint8Memory() {
 	return wasmMemoryBuffer;
 }
 
-function passArrayToWasm(arg, malloc, size) {
-    const ptr = malloc(size);
+function passArrayToWasm(arg, size) {
+    const ptr = Module._malloc(size);
 	if(!ptr) throw "Memory Error"
 	getUint8Memory().set(arg, ptr);
 	return ptr;
@@ -16,10 +16,15 @@ function passArrayToWasm(arg, malloc, size) {
 function getArrayFromWasm(ptr, len) {
 	return getUint8Memory().subarray(ptr, ptr + len);
 }
+
+function getInt32(uint8Pointer){
+	return Module.HEAPU32[Math.ceil(uint8Pointer/4)]
+}
+
 function d5ly_compress(sourceArray)
 {
     var len = sourceArray.length;
-	var sourcePointer = passArrayToWasm(sourceArray, Module._malloc, len * 2);
+	var sourcePointer = passArrayToWasm(sourceArray, len * 2);
 	var compressedSize = Module.compress(sourcePointer, len);
 	var compressedArray = getArrayFromWasm(sourcePointer+len, compressedSize).slice();
 	Module._free(sourcePointer)
@@ -28,15 +33,14 @@ function d5ly_compress(sourceArray)
 
 function d5ly_decompress(compressedArray, sourceSize)
 {
-	len = compressedArray.length;
-    const compressedPointer = passArrayToWasm(compressedArray, Module._malloc, sourceSize+len);
-	var decompressedSize = Module.decompress(compressedPointer, len, sourceSize);
-	if (decompressedSize != sourceSize) {
-		throw ("error, new_size = " + decompressedSize);
-	}
-	var decompressedArray = getArrayFromWasm(compressedPointer+len, decompressedSize).slice();
-	Module._free(compressedPointer)
-	return decompressedArray
+	var len = compressedArray.length;
+	var compressedArrayPointer = passArrayToWasm(compressedArray, len + 7);
+	var decompressedSize = Module.decompress(compressedArrayPointer, len);
+	decompressedArrayPointer = getInt32(compressedArrayPointer + len)
+	var decompressedArray = getArrayFromWasm(decompressedArrayPointer, decompressedSize).slice();
+	Module._free(compressedArrayPointer)
+	Module._free(decompressedArrayPointer)
+	return decompressedArray;
 }
 
 function d5ly_gzipCompress(sourceArray){

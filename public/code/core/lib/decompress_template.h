@@ -30,6 +30,19 @@
  * deflate_decompress.c so that it can be compiled multiple times with different
  * target instruction sets.
  */
+#include <stdlib.h>
+extern uint8_t** decompress_pointer;
+extern uint32_t buffer_size;
+int allocate_more(u8** out_end, u8** out_next, u8** out){
+	(*out_end) += buffer_size;
+	buffer_size <<= 1;
+	uint8_t* old_decompress_pointer = *decompress_pointer;
+	*decompress_pointer = (uint8_t*)realloc(*decompress_pointer, buffer_size);
+	int offset = (int)(*decompress_pointer) - (int)old_decompress_pointer;
+	*out_next += offset;
+	*out += offset;
+	return !!(*decompress_pointer);
+}
 
 static enum libdeflate_result ATTRIBUTES
 FUNCNAME(struct libdeflate_decompressor * restrict d,
@@ -38,7 +51,7 @@ FUNCNAME(struct libdeflate_decompressor * restrict d,
 	 size_t *actual_in_nbytes_ret, size_t *actual_out_nbytes_ret)
 {
 	u8 *out_next = out;
-	u8 * const out_end = out_next + out_nbytes_avail;
+	u8 * out_end = out_next + out_nbytes_avail;
 	const u8 *in_next = in;
 	const u8 * const in_end = in_next + in_nbytes;
 	bitbuf_t bitbuf = 0;
@@ -57,7 +70,6 @@ FUNCNAME(struct libdeflate_decompressor * restrict d,
 next_block:
 	/* Starting to read the next block.  */
 	;
-
 	STATIC_ASSERT(CAN_ENSURE(1 + 2 + 5 + 5 + 4));
 	ENSURE_BITS(1 + 2 + 5 + 5 + 4);
 
@@ -198,8 +210,9 @@ next_block:
 		nlen = READ_U16();
 
 		SAFETY_CHECK(len == (u16)~nlen);
-		if (unlikely(len > out_end - out_next))
-			return LIBDEFLATE_INSUFFICIENT_SPACE;
+		while (unlikely(len > out_end - out_next)){
+			if (!allocate_more(&out_end, &out_next, ((u8**)&out))) return LIBDEFLATE_INSUFFICIENT_SPACE;
+		}
 		SAFETY_CHECK(len <= in_end - in_next);
 
 		memcpy(out_next, in_next, len);
@@ -272,8 +285,9 @@ have_decode_tables:
 		REMOVE_BITS(entry & HUFFDEC_LENGTH_MASK);
 		if (entry & HUFFDEC_LITERAL) {
 			/* Literal  */
-			if (unlikely(out_next == out_end))
-				return LIBDEFLATE_INSUFFICIENT_SPACE;
+			while (unlikely(out_next == out_end)){
+				if (!allocate_more(&out_end, &out_next, ((u8**)&out))) return LIBDEFLATE_INSUFFICIENT_SPACE;
+			}
 			*out_next++ = (u8)(entry >> HUFFDEC_RESULT_SHIFT);
 			continue;
 		}
@@ -294,10 +308,11 @@ have_decode_tables:
 		 * end-of-block length, so subtract 1 and it turn it into
 		 * SIZE_MAX.  */
 		STATIC_ASSERT(HUFFDEC_END_OF_BLOCK_LENGTH == 0);
-		if (unlikely((size_t)length - 1 >= out_end - out_next)) {
-			if (unlikely(length != HUFFDEC_END_OF_BLOCK_LENGTH))
-				return LIBDEFLATE_INSUFFICIENT_SPACE;
-			goto block_done;
+		while (unlikely((size_t)length - 1 >= out_end - out_next)) {
+			if (unlikely(length != HUFFDEC_END_OF_BLOCK_LENGTH)){
+				if (!allocate_more(&out_end, &out_next, ((u8**)&out))) return LIBDEFLATE_INSUFFICIENT_SPACE;
+			}
+			else goto block_done;
 		}
 
 		/* Decode the match offset.  */

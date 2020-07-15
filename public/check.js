@@ -21,7 +21,7 @@ function getGzipFile(inputArray, name){
 }
 
 function getSourceArray(){
-	var sourceArray = new Uint8Array(100000);
+	var sourceArray = new Uint8Array(1000000);
 	for (var i = 0; i < sourceArray.length; i++)
 	sourceArray[i] = getRandomInt(100) + (255 - 100)/2;
 	return sourceArray
@@ -87,12 +87,12 @@ function battle(){
 	compressedArray = d5ly_compress(sourceArray)
 	console.timeEnd('d5ly_compress')
 	
-	decompressedArray = d5ly_decompress(compressedArray, sourceArray.length)
+	decompressedArray = d5ly_decompress(compressedArray)
 	check_equality(sourceArray, decompressedArray)
 	
 }
 
-function get_time_of_decompress(){
+function get_time_of_compress(){
 	var sourceArray = getSourceArray()
 	
 	let times = []
@@ -114,5 +114,31 @@ function get_time_of_decompress(){
 
 	decompressedArray = d5ly_decompress(compressedArray, sourceArray.length)
 	check_equality(sourceArray, decompressedArray)
+	return times
+}
+
+function get_time_of_decompress(){
+	var sourceArray = getSourceArray()
+	compressedArray = flate.deflate_encode_raw(sourceArray)
+
+	let times = []
+
+	let start = performance.now();
+	pako.inflateRaw(compressedArray)
+	let end = performance.now();
+	times.push(end - start)
+	
+	start = performance.now();
+	flate.deflate_decode_raw(compressedArray)
+	end = performance.now();
+	times.push(end - start)
+
+	start = performance.now();
+	decompressedArray = d5ly_decompress(compressedArray)
+	end = performance.now();
+	times.push(end - start)
+
+	check_equality(sourceArray, decompressedArray)
+
 	return times
 }

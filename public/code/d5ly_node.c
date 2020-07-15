@@ -1,9 +1,13 @@
-#include "lib/libdeflate.h"
 #include <stdlib.h>
+#include <emscripten.h>
+#include"core/lib/aligned_malloc.h"
+#include "core/lib/libdeflate.h"
 
 #define LVL 1
 
-int compress(int source, int source_size){
+EMSCRIPTEN_KEEPALIVE
+int compress(int source, int source_size)
+{
     struct libdeflate_compressor* compressor = libdeflate_alloc_compressor(LVL);
     uint8_t* pointer = (uint8_t*)source;
     return libdeflate_deflate_compress(compressor, pointer, source_size, pointer+source_size, source_size);
@@ -11,6 +15,7 @@ int compress(int source, int source_size){
 
 uint8_t** decompress_pointer;
 uint32_t buffer_size;
+EMSCRIPTEN_KEEPALIVE
 int decompress(int compressed, int compressed_size)
 {
     struct libdeflate_decompressor* decompressor = libdeflate_alloc_decompressor();
@@ -22,9 +27,3 @@ int decompress(int compressed, int compressed_size)
     libdeflate_deflate_decompress(decompressor, pointer, compressed_size, *decompress_pointer, buffer_size, &actual_size);
     return actual_size;
 }
-int gzipCompress(int source, int source_size)
-{
-    struct libdeflate_compressor* compressor = libdeflate_alloc_compressor(LVL);
-    uint8_t* pointer = (uint8_t*)source;
-    return libdeflate_gzip_compress(compressor, pointer, source_size, pointer+source_size, source_size);
-}    
