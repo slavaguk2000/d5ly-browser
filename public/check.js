@@ -112,7 +112,7 @@ function get_time_of_compress(){
 	end = performance.now();
 	times.push(end - start)
 
-	decompressedArray = d5ly_decompress(compressedArray, sourceArray.length)
+	decompressedArray = d5ly_decompress(compressedArray)
 	check_equality(sourceArray, decompressedArray)
 	return times
 }
