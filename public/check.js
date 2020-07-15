@@ -17,7 +17,7 @@ var saveByteArray = (function () {
 }());
 
 function getGzipFile(inputArray, name){
-  saveByteArray(d5ly_gzipCompress(inputArray), name);
+  saveByteArray(d5ly_gzipCompress(inputArray), name + '.gz');
 }
 
 function getSourceArray(){
