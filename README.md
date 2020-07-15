@@ -3,9 +3,9 @@
 
 ## Usage 
 ### You need 3 files:
-####	-d5ly.js
-####	-d5ly.wasm
-####	-d5ly_cover.js
+####	-public/d5ly.js
+####	-public/d5ly.wasm
+####	-public/d5ly_cover.js
 
 ```html
 <script src="d5ly_cover.js"></script>
