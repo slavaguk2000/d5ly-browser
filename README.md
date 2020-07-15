@@ -1,11 +1,11 @@
 # D5LY - Browser
 # The fastest deflate compressor for browser
 
-# Usage 
-##You need 3 files:
-###	-d5ly.js
-###	-d5ly.wasm
-###	-d5ly_cover.js
+## Usage 
+### You need 3 files:
+####	-d5ly.js
+####	-d5ly.wasm
+####	-d5ly_cover.js
 
 ```html
 <script src="d5ly_cover.js"></script>
